@@ -1,42 +1,57 @@
 # TM Nexus Group website
 
-Static website for TM Nexus Group. No build step is needed.
+Static website for TM Nexus Group (tmnexusgroup.co.za). No build step is needed. Deploy the whole folder to Vercel.
 
 ## Files
 
 | Path | What it is |
 |---|---|
-| `index.html` | All pages (Home, About, Portfolio, Insights, Contact, Admin log in, Privacy, Terms). Pages switch with `#links`, e.g. `index.html#contact`. |
-| `assets/css/styles.css` | All styles, including light/dark theme colours, layout and animations. |
-| `assets/js/main.js` | Page routing, service cards, insights articles, forms, theme toggle, hero animation, services ticker, scroll animations. |
-| `assets/img/logo-mark.svg` | Logo mark, black (for light backgrounds). |
-| `assets/img/logo-mark-white.svg` | Logo mark, white (for dark backgrounds). |
+| `index.html` | All pages (Home, About, Portfolio, Insights, Contact, Admin log in, Privacy, Terms). Pages switch with `#links`, e.g. `/#contact`. Includes SEO, social sharing tags and Google business data (JSON-LD). |
+| `assets/css/styles.css` | All styles: light/dark theme colours, layout, animations. |
+| `assets/js/main.js` | Business settings, packages, FAQ, services, articles, forms, theme toggle, animations. |
+| `assets/img/logo-mark.svg` / `logo-mark-white.svg` | Logo mark in black and white. |
 | `assets/img/favicon.svg` | Browser tab icon. |
+| `assets/img/og-image.png` | Image shown when the site link is shared on WhatsApp, LinkedIn, Facebook. |
+| `404.html` | Page shown for broken links. |
+| `robots.txt`, `sitemap.xml` | Tell Google what to index. |
+| `vercel.json` | Vercel settings: clean URLs, caching and security headers. |
 
-## View it
+## Fill in your details (top of `assets/js/main.js`)
 
-Double-click `index.html`, or serve the folder locally:
-
+```js
+const SETTINGS = {
+  legalName: '',          // 'TM Nexus Group (Pty) Ltd'
+  regNumber: '',          // CIPC registration number
+  vatNumber: '',          // only if VAT registered
+  bbbee: '',              // e.g. 'Level 1 B-BBEE contributor'
+  address: '',            // physical or postal address
+  founderPhoto: '',       // 'assets/img/mufunwa.jpg' (add the photo to assets/img)
+  whatsapp: '27762256601',
+  formEndpoint: '',       // quote form endpoint (see below)
+  newsletterEndpoint: ''  // newsletter endpoint (see below)
+};
 ```
-npx serve .
-```
 
-The Montserrat font loads from Google Fonts, so an internet connection is needed for it. Without one, a similar system font is used.
+Empty values are hidden. The business details appear in the footer once filled in.
 
-## Editing content
+- **Prices**: in `PACKAGES` (same file), set `price: 3500` to show "From R3 500". Leave `''` to show "Quote on request". Review the package contents too.
+- **FAQ**: edit the `FAQS` list. Review the answers (timelines, payment terms) so they match how you work.
+- **Services**: edit `SERVICES`. **Articles**: edit `POSTS` and check the compliance facts before publishing.
+- **Social links**: replace the `href` values of the footer icons in `index.html` with your profile links.
 
-- **Services**: edit the `SERVICES` list near the top of `assets/js/main.js`.
-- **Insights articles**: edit the `POSTS` list in `assets/js/main.js`.
-- **Contact details**: search `index.html` for `076 225 6601` and `info@tmnexusgroup.co.za`.
-- **Social links**: the footer icons point to each platform's home page. Replace the `href` values in `index.html` with your profile links.
+## Make the forms send to your email
 
-## Still to connect before going live
+1. Create a free account at formspree.io and create two forms (Quote, Newsletter).
+2. Paste each form URL into `formEndpoint` and `newsletterEndpoint`.
+3. Redeploy. Submissions now arrive in your email. If sending fails, visitors still get the copy/email fallback.
 
-- **Contact form**: prepares the enquiry for the visitor to copy or email. Connect it to a form service (e.g. Formspree) or your own API to receive submissions directly.
-- **Newsletter**: validates the email but does not store it. Connect it to Mailchimp, Brevo or similar.
-- **Admin log in**: the page is a front-end only. Connect it to a real sign-in service (e.g. Microsoft Entra ID) once hosted.
-- **Privacy Policy / Terms**: starting templates; have them reviewed.
+## After deploying
 
-## Hosting
+- Add the site to **Google Search Console** and submit `https://tmnexusgroup.co.za/sitemap.xml`.
+- Create a **Google Business Profile** so you appear on Google Maps.
+- Admin log in is still front-end only; connect it to a real sign-in service before using it.
+- Have the Privacy Policy and Terms reviewed.
 
-Any static host works. On Azure: create a Static Web App and point it at this folder (no build command, app location `/`).
+## Preview locally
+
+Double-click `index.html`, or run `npx serve .` in this folder.

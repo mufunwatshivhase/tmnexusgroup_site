@@ -1,3 +1,47 @@
+/* ============================================================
+   BUSINESS SETTINGS: fill these in and the site updates itself.
+   Empty values are simply not shown.
+   ============================================================ */
+const SETTINGS = {
+  legalName: 'TM Nexus Group (Pty) Ltd', // registered name
+  regNumber: 'K2025808708',             // CIPC enterprise number
+  vatNumber: '9438178239',              // SARS VAT number
+  directors: 'Mufunwa Tshivhase, Emmanuel Mulovhedzi',
+  bbbee: '',               // e.g. 'Level 1 B-BBEE contributor'
+  address: '15 Yellowwood Blvd, Riverside View, Diepsloot, Gauteng, 2189', // registered address
+  founderPhoto: 'assets/img/mufunwa.jpg', // Mufunwa's photo
+  directorPhoto: '',       // Emmanuel's photo, e.g. 'assets/img/emmanuel.jpg'
+  whatsapp: '27762256601', // number in international format, no + or spaces
+  formEndpoint: '',        // quote form, e.g. 'https://formspree.io/f/abcdwxyz'
+  newsletterEndpoint: ''   // newsletter form, e.g. a second Formspree form URL
+};
+
+/* Packages: set price to a number (e.g. 3500) to show "From R3 500"; leave '' to show "Quote on request" */
+const PACKAGES = [
+  {name:'Starter Website', tag:'Technology', price:4500, unit:'once-off',
+   desc:'A professional site to get your business found online.',
+   items:['Up to 5 responsive pages','Contact form and WhatsApp button','Basic Google SEO setup','Domain and hosting setup','1 round of revisions']},
+  {name:'Custom Software', tag:'Technology', price:25000, unit:'per project',
+   desc:'Apps, portals and automation built around how you work.',
+   items:['Requirements workshop','Custom web app or API','Azure hosting with CI/CD','Training and handover','Ongoing support options']},
+  {name:'Business Start-up Pack', tag:'Business Support', price:2500, unit:'once-off', featured:true,
+   desc:'Everything a new company needs to start trading and tendering.',
+   items:['Pty Ltd registration with CIPC','B-BBEE sworn affidavit','Share certificates','Business bank account guidance','Logo and business card design']},
+  {name:'Compliance Care', tag:'Business Support', price:650, unit:'per month',
+   desc:'We keep your company compliant so you never miss a deadline.',
+   items:['CIPC annual returns','Tax compliance status monitoring','UIF and COIDA renewals','Deadline reminders','Priority WhatsApp support']}
+];
+
+const FAQS = [
+  ['What do I need to register a company?','The ID numbers and contact details of each director, a few proposed company names and a registered address. We send you a short checklist when you order, and handle the rest.'],
+  ['How long does a CIPC registration take?','We submit as soon as we have your documents. Final approval depends on CIPC processing times, which vary, and we keep you updated until your registration certificate is issued.'],
+  ['How long does it take to build a website?','A standard company website usually takes two to four weeks from the time we receive your content. Larger sites and custom software are scheduled after a short planning session.'],
+  ['Do you only work with clients in Pretoria?','No. We are based in Pretoria, but almost everything is done online, so we work with businesses across South Africa.'],
+  ['How does payment work?','You receive an itemised quote first. Development projects need a deposit before work starts, with the balance due on delivery. Government fees are charged separately at cost.'],
+  ['Can you look after my website after it launches?','Yes. We offer ongoing support for updates, hosting, backups and security, so you don\'t need to manage the technical side yourself.'],
+  ['Is my personal information safe with you?','Yes. We only use your information to deliver the services you ask for, and we handle it in line with POPIA. See our Privacy Policy for details.']
+];
+
 const I = {
   web:'<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 8h18M8 21h8M12 18v3"/><circle cx="12" cy="13" r="2.6"/><path d="M9.4 13h5.2M12 10.4c.9.8.9 4.4 0 5.2M12 10.4c-.9.8-.9 4.4 0 5.2"/>',
   code:'<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13 6l-2 12"/>',
@@ -84,8 +128,9 @@ function openPost(id){
   v.innerHTML = `<div class="article"><button class="btn btn-ghost btn-sm" type="button" id="backPosts" style="justify-self:start">← All insights</button>
     <div class="meta mono" style="display:flex;gap:12px;color:var(--muted)"><span>${p.tag}</span><span>${p.date}</span><span>${p.min} min read</span></div>
     <h1 style="font-size:clamp(2rem,4.4vw,3rem)">${p.t}</h1>${p.body}
-    <div class="band" style="margin-top:20px"><div><h3>Need help with this?</h3><p>Send us your details and we'll take care of it.</p></div><a class="btn btn-primary" href="#contact"><span class="arrow">Request a Quote</span></a></div></div>`;
+    <div class="band" style="margin-top:20px"><canvas class="band-net" aria-hidden="true"></canvas><div><h3>Need help with this?</h3><p>Send us your details and we'll take care of it.</p></div><a class="btn btn-primary" href="#contact"><span class="arrow">Request a Quote</span></a></div></div>`;
   document.getElementById('postList').hidden = true; v.hidden = false;
+  v.querySelectorAll('canvas.band-net').forEach(nexusBg);
   document.getElementById('backPosts').onclick = closePost;
   window.scrollTo({top:0});
 }
@@ -100,9 +145,21 @@ document.getElementById('newsForm').addEventListener('submit',e=>{
   msg.classList.remove('bad'); inp.removeAttribute('aria-invalid');
   if(!v){ msg.textContent='Enter your email address to subscribe.'; msg.classList.add('bad'); inp.setAttribute('aria-invalid','true'); inp.focus(); return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){ msg.textContent='That email address doesn\'t look right. Check it and try again.'; msg.classList.add('bad'); inp.setAttribute('aria-invalid','true'); inp.focus(); return; }
+  if(SETTINGS.newsletterEndpoint){
+    msg.textContent='Subscribing…';
+    sendForm(SETTINGS.newsletterEndpoint,{email:v,_subject:'Newsletter sign-up'})
+      .then(()=>{ msg.textContent='Thanks! You\'re subscribed.'; inp.value=''; })
+      .catch(()=>{ msg.textContent='Sign-up failed. Please try again, or email info@tmnexusgroup.co.za.'; msg.classList.add('bad'); });
+    return;
+  }
   msg.textContent='Thanks! Newsletter sign-up opens soon. For now, email info@tmnexusgroup.co.za to be added to the list.';
   inp.value='';
 });
+/* Sends a form to a service such as Formspree (JSON in, JSON out) */
+function sendForm(url,data){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)})
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r; });
+}
 const PAGES=['home','about','services','portfolio','insights','contact','admin','privacy','terms'];
 document.getElementById('adminForm').addEventListener('submit',e=>{
   e.preventDefault();
@@ -167,6 +224,14 @@ document.getElementById('quoteForm').addEventListener('submit',e=>{
   err.hidden=true;
   const svc=f.service.value||'Not specified';
   const text=`Quote request: ${svc}\n\nName: ${name}\nEmail: ${email}\nPhone: ${f.phone.value.trim()||'-'}\nCompany: ${f.company.value.trim()||'-'}\nService: ${svc}\n\nProject details:\n${details}`;
+  if(SETTINGS.formEndpoint && !f.dataset.fallback){
+    const btn=f.querySelector('button[type="submit"]'); btn.disabled=true;
+    sendForm(SETTINGS.formEndpoint,{name,email,phone:f.phone.value.trim(),company:f.company.value.trim(),service:svc,details,_subject:'Quote request: '+svc})
+      .then(()=>{ f.reset(); err.hidden=true; toast('Thanks! Your request was sent. We\'ll reply within one business day.'); })
+      .catch(()=>{ err.textContent='We couldn\'t send your request. Use the email option below instead.'; err.hidden=false; f.dataset.fallback='1'; f.requestSubmit(); })
+      .finally(()=>{ btn.disabled=false; });
+    return;
+  }
   document.getElementById('formText').textContent=text;
   document.getElementById('mailLink').href=`mailto:info@tmnexusgroup.co.za?subject=${encodeURIComponent('Quote request: '+svc)}&body=${encodeURIComponent(text)}`;
   document.getElementById('formResult').hidden=false;
@@ -175,24 +240,34 @@ document.getElementById('quoteForm').addEventListener('submit',e=>{
 document.getElementById('copyEnquiry').onclick=()=>copyText(document.getElementById('formText').textContent,document.getElementById('formText'));
 
 /* Hero nexus: two clusters (tech, business) drifting and linking through a centre node */
-(function(){
-  const c=document.getElementById('nexus'); const ctx=c.getContext('2d');
+function nexusBg(c){
+  if(!c) return; const ctx=c.getContext('2d');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let W,H,nodes=[];
   function size(){const r=c.getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;c.width=W*d;c.height=H*d;ctx.setTransform(d,0,0,d,0,0);
     nodes=[];const n=Math.round(Math.min(110,(W*H)/14000));
     for(let i=0;i<n;i++){const t=i%2;nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,t});}}
   function draw(){
+    const rgb=getComputedStyle(c).getPropertyValue('--net').trim()||'255,255,255';
     ctx.clearRect(0,0,W,H);
     for(let i=0;i<nodes.length;i++){const a=nodes[i];
       for(let j=i+1;j<nodes.length;j++){const b=nodes[j];const d=Math.hypot(a.x-b.x,a.y-b.y);
-        if(d<130){ctx.strokeStyle=(a.t!==b.t)?`rgba(255,255,255,${.45*(1-d/130)})`:`rgba(255,255,255,${.2*(1-d/130)})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}}}
-    for(const a of nodes){ctx.fillStyle=a.t?'#ffffff':'#8a8a8a';ctx.beginPath();ctx.arc(a.x,a.y,2.2,0,7);ctx.fill();
+        if(d<130){ctx.strokeStyle=(a.t!==b.t)?`rgba(${rgb},${.45*(1-d/130)})`:`rgba(${rgb},${.2*(1-d/130)})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}}}
+    for(const a of nodes){ctx.fillStyle=a.t?`rgb(${rgb})`:`rgba(${rgb},.5)`;ctx.beginPath();ctx.arc(a.x,a.y,2.2,0,7);ctx.fill();
       if(!reduce){a.x+=a.vx;a.y+=a.vy;if(a.x<0||a.x>W)a.vx*=-1;if(a.y<0||a.y>H)a.vy*=-1;}}
-    if(!reduce) requestAnimationFrame(draw);
+    if(!reduce && c.isConnected) requestAnimationFrame(draw);
   }
-  size(); draw(); addEventListener('resize',()=>{size(); if(reduce) draw();});
-})();
+  size(); draw();
+  /* Re-measure whenever the canvas changes size (window resize, or a hidden page becoming visible) */
+  if('ResizeObserver' in window) new ResizeObserver(()=>{size(); if(reduce) draw();}).observe(c);
+  else addEventListener('resize',()=>{size(); if(reduce) draw();});
+  /* Redraw a still canvas when the theme changes (animated ones update every frame) */
+  if(reduce){ new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw); }
+}
+/* Same animated network on the homepage hero and in the footer */
+nexusBg(document.getElementById('nexus'));
+nexusBg(document.getElementById('nexusFoot'));
+document.querySelectorAll('canvas.band-net').forEach(nexusBg);
 
 /* Theme toggle */
 (function(){
@@ -207,6 +282,43 @@ document.getElementById('copyEnquiry').onclick=()=>copyText(document.getElementB
   });
 })();
 
+/* Packages, FAQ, business details, founder photo, WhatsApp links */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderExtras(){
+  const rand=n=>'R'+Number(n).toLocaleString('en-ZA').replace(/,/g,' ');
+  document.getElementById('pkgGrid').innerHTML=PACKAGES.map(p=>`
+    <article class="pkg${p.featured?' featured':''}">
+      ${p.featured?'<span class="pkg-badge">Most popular</span>':''}
+      <span class="eyebrow">${esc(p.tag)}</span>
+      <div class="stack" style="gap:8px"><h3>${esc(p.name)}</h3><p class="pkg-desc">${esc(p.desc)}</p></div>
+      <div class="pkg-price">${p.price!==''&&p.price!=null?`<span>From</span><b>${rand(p.price)}</b><span>${esc(p.unit)}</span>`:`<b style="font-size:1.25rem">Quote on request</b>`}</div>
+      <ul>${p.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>
+      <button class="btn ${p.featured?'btn-primary':'btn-ghost'} btn-sm" type="button" data-package="${esc(p.name)}"><span class="arrow">Choose package</span></button>
+    </article>`).join('');
+  document.getElementById('faqList').innerHTML=FAQS.map(([q,a],i)=>`<details${i===0?' open':''}><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('');
+  const parts=[['',SETTINGS.legalName],['Enterprise no.',SETTINGS.regNumber],['VAT no.',SETTINGS.vatNumber],['Directors:',SETTINGS.directors],['',SETTINGS.bbbee],['',SETTINGS.address]].filter(([,v])=>v);
+  /* Footer stays clean: only the legal name and registration number in the copyright line. Full details live on the Terms page. */
+  if(SETTINGS.legalName) document.getElementById('copyLine').textContent='© 2026 '+SETTINGS.legalName+(SETTINGS.regNumber?' · Reg. no. '+SETTINGS.regNumber:'')+'. All rights reserved.';
+  const info=[['Registered name',SETTINGS.legalName],['Enterprise number',SETTINGS.regNumber],['VAT number',SETTINGS.vatNumber],['Directors',SETTINGS.directors],['B-BBEE',SETTINGS.bbbee],['Registered address',SETTINGS.address],['Email','info@tmnexusgroup.co.za'],['Phone','076 225 6601']].filter(([,v])=>v);
+  document.getElementById('companyInfo').innerHTML=info.map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
+  if(SETTINGS.directorPhoto){ const av=document.getElementById('avatarEM'); if(av) av.outerHTML=`<img class="founder-photo" src="${esc(SETTINGS.directorPhoto)}" alt="Emmanuel Mulovhedzi, director of TM Nexus Group">`; }
+  if(SETTINGS.founderPhoto){ const av=document.getElementById('avatarMT'); if(av) av.outerHTML=`<img class="founder-photo" src="${esc(SETTINGS.founderPhoto)}" alt="Mufunwa Tshivhase, founder of TM Nexus Group">`; }
+  const wa='https://wa.me/'+SETTINGS.whatsapp+'?text='+encodeURIComponent('Hi TM Nexus Group, I\'d like to find out more about your services.');
+  document.getElementById('waFloat').href=wa;
+}
+renderExtras();
+/* 'Company information' footer link: open Terms, then scroll to the section */
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-goto]'); if(!g) return;
+  const id=g.dataset.goto; setTimeout(()=>{ const t=document.getElementById(id); if(t) t.scrollIntoView({behavior:'smooth',block:'start'}); },80);
+});
+document.addEventListener('click',e=>{
+  const pk=e.target.closest('[data-package]'); if(!pk) return;
+  document.getElementById('f-service').value='Not sure yet';
+  document.getElementById('f-details').value='I\'m interested in the '+pk.dataset.package+' package.\n\n';
+  location.hash='#contact'; setTimeout(()=>document.getElementById('f-name').focus(),60);
+});
+
 renderServices(); renderPosts(); route();
 /* Fill the duplicate ticker list so the loop is seamless */
 (function(){ const l=document.querySelectorAll('.marquee-list'); if(l.length===2) l[1].innerHTML=l[0].innerHTML; })();
@@ -217,7 +329,7 @@ renderServices(); renderPosts(); route();
   const groups = [
     ['.hero-copy > *', ''], ['.hero-art', 'rv-right'], ['.hero-facts', ''],
     ['.sec-head', ''], ['.tabs', ''], ['.svc-grid > .svc', ''], ['.process > div', ''],
-    ['.posts > .post', ''], ['.band', ''], ['.split > .stack', 'rv-left'], ['.mv > div', 'rv-right'],
+    ['.posts > .post', ''], ['.pkg-grid > .pkg', ''], ['.faq > details', ''], ['.band', ''], ['.split > .stack', 'rv-left'], ['.mv > div', 'rv-right'],
     ['.values > div', ''], ['.founder', ''], ['.work > .case', ''], ['form.card', ''], ['.direct > .dline', 'rv-right'],
     ['.legal > *', ''], ['.fnews-copy', 'rv-left'], ['.fnews-actions', 'rv-right'], ['.fgrid > div', '']
   ];
