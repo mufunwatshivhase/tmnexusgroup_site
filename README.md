@@ -9,8 +9,9 @@ Static website for TM Nexus Group (tmnexusgroup.co.za). No build step is needed.
 | `index.html` | All pages (Home, About, Portfolio, Insights, Contact, Admin log in, Privacy, Terms). Pages switch with `#links`, e.g. `/#contact`. Includes SEO, social sharing tags and Google business data (JSON-LD). |
 | `assets/css/styles.css` | All styles: light/dark theme colours, layout, animations. |
 | `assets/js/main.js` | Business settings, packages, FAQ, services, articles, forms, theme toggle, animations. |
-| `assets/img/logo-mark.svg` / `logo-mark-white.svg` | Logo mark in black and white. |
-| `assets/img/favicon.svg` | Browser tab icon. |
+| `assets/img/logo.png` | The official logo, used unchanged in the header, footer, admin log in, 404 page and as the browser tab icon. Replace this one file to change the logo everywhere. |
+| `assets/img/logo-full.png` | Full logo with name and tagline. |
+| `assets/img/logo-mark.svg` / `logo-mark-white.svg` / `favicon.svg` | Older logo files, no longer used by the pages. |
 | `assets/img/og-image.png` | Image shown when the site link is shared on WhatsApp, LinkedIn, Facebook. |
 | `404.html` | Page shown for broken links. |
 | `robots.txt`, `sitemap.xml` | Tell Google what to index. |
